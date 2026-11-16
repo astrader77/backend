@@ -4,7 +4,7 @@ const settingSchema = new mongoose.Schema(
   {
     shopName: {
       type: String,
-      default: 'AS Traders Fertilizer & Agro Chemicals',
+      default: 'AS Son Trader Fertilizer & Agro Chemicals',
     },
     shopPhone: {
       type: String,

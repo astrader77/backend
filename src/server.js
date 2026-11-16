@@ -21,8 +21,17 @@ connectDB();
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+// Middlewares - Enable complete CORS for astrader.site and all origins
+app.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    credentials: false,
+  })
+);
+app.options('*', cors());
+
 app.use(express.json());
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));

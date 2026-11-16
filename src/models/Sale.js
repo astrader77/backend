@@ -61,6 +61,16 @@ const saleSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    discount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    finalAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     totalProfit: {
       type: Number,
       required: true,

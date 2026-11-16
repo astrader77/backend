@@ -18,7 +18,8 @@ const generateInvoiceNumber = async (businessDate) => {
 // @route   POST /api/sales
 export const createSale = async (req, res) => {
   try {
-    const { items, paymentMethod, customerName, customerPhone } = req.body;
+    const { items, paymentMethod = 'Cash', customerName, customerPhone, discount = 0 } = req.body;
+    const numDiscount = Math.max(0, Number(discount) || 0);
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'Sale must include at least one product item' });
@@ -121,6 +122,9 @@ export const createSale = async (req, res) => {
 
     const invoiceNumber = await generateInvoiceNumber(businessDate);
 
+    const finalNetTotal = Math.max(0, grandTotalAmount - numDiscount);
+    const finalProfit = Math.max(0, grandTotalProfit - numDiscount);
+
     // Create Sale record
     const sale = await Sale.create({
       invoiceNumber,
@@ -137,7 +141,9 @@ export const createSale = async (req, res) => {
       totalQuantity: grandTotalQuantity,
       totalPurchaseCost: grandTotalCost,
       totalAmount: grandTotalAmount,
-      totalProfit: grandTotalProfit,
+      discount: numDiscount,
+      finalAmount: finalNetTotal,
+      totalProfit: finalProfit,
       paymentMethod: paymentMethod || 'Cash',
       customerName: customerName ? customerName.trim() : 'Counter Sale',
       customerPhone: customerPhone ? customerPhone.trim() : '',

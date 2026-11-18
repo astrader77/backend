@@ -156,6 +156,33 @@ export const closeSession = async (req, res) => {
   }
 };
 
+// @desc    Delete a business session by ID (admin only)
+// @route   DELETE /api/sessions/:id
+export const deleteSession = async (req, res) => {
+  try {
+    const session = await BusinessSession.findById(req.params.id);
+    if (!session) {
+      return res.status(404).json({ success: false, message: 'Session not found' });
+    }
+
+    await BusinessSession.findByIdAndDelete(req.params.id);
+
+    await AuditLog.create({
+      action: 'SESSION_DELETED',
+      entityType: 'BusinessSession',
+      entityId: req.params.id,
+      details: { businessDate: session.businessDate, deletedBy: req.user?.name || 'Admin' },
+      performedBy: req.user ? req.user._id : null,
+      performedByName: req.user ? req.user.name : 'Admin',
+    });
+
+    return res.json({ success: true, message: `Session for ${session.businessDate} deleted successfully.` });
+  } catch (error) {
+    console.error('[deleteSession Error]:', error);
+    return res.status(500).json({ success: false, message: 'Failed to delete session' });
+  }
+};
+
 // @desc    Get session closing history
 // @route   GET /api/sessions/history
 export const getSessionHistory = async (req, res) => {

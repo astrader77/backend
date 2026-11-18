@@ -89,6 +89,45 @@ export const updatePassword = async (req, res) => {
   }
 };
 
+// @desc    Update user email
+// @route   PUT /api/auth/email
+export const updateEmail = async (req, res) => {
+  try {
+    const { newEmail, currentPassword } = req.body;
+    if (!newEmail || !currentPassword) {
+      return res.status(400).json({ success: false, message: 'New email and current password are required' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+    }
+
+    // Check if new email already taken
+    const existing = await User.findOne({ email: newEmail.toLowerCase() });
+    if (existing && existing._id.toString() !== req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'This email is already in use by another account' });
+    }
+
+    user.email = newEmail.toLowerCase();
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: 'Email updated successfully',
+      data: { email: user.email },
+    });
+  } catch (error) {
+    console.error('[Update Email Error]:', error);
+    return res.status(500).json({ success: false, message: 'Server error while updating email' });
+  }
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 export const registerUser = async (req, res) => {

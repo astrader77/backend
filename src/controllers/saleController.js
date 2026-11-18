@@ -188,10 +188,18 @@ export const createSale = async (req, res) => {
 // @route   GET /api/sales
 export const getSales = async (req, res) => {
   try {
-    const { businessDate, startDate, endDate, paymentMethod, limit = 50, page = 1 } = req.query;
+    const { businessDate, startDate, endDate, date, paymentMethod, limit = 500, page = 1 } = req.query;
     const query = { status: 'COMPLETED' };
 
-    if (businessDate) {
+    if (date) {
+      // Specific single calendar date filter (YYYY-MM-DD)
+      const startOfDay = new Date(`${date}T00:00:00.000Z`);
+      const endOfDay = new Date(`${date}T23:59:59.999Z`);
+      query.$or = [
+        { businessDate: date },
+        { date: { $gte: startOfDay, $lte: endOfDay } }
+      ];
+    } else if (businessDate) {
       query.businessDate = businessDate;
     } else if (startDate && endDate) {
       query.date = {
@@ -208,7 +216,7 @@ export const getSales = async (req, res) => {
 
     const [sales, totalCount] = await Promise.all([
       Sale.find(query)
-        .sort({ date: -1 })
+        .sort({ date: -1, createdAt: -1 })
         .skip(skip)
         .limit(Number(limit))
         .populate('createdBy', 'name email'),
